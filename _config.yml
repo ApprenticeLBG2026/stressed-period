@@ -1,5 +1,105 @@
-title: STRESSED PERIOD ANALYSIS FOR MARKET RISK
-logo: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMe4xBHZrm7d2NBTXS1nrrQsIGIIIZdsh-tA&s
+#title: STRESSED PERIOD ANALYSIS FOR MARKET RISK
+#logo: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMe4xBHZrm7d2NBTXS1nrrQsIGIIIZdsh-tA&s
 #description: text below image
-show_downloads: true
-theme: jekyll-theme-minimal
+#show_downloads: true
+#theme: jekyll-theme-minimal
+
+<section>
+
+  <h1>Data Science Project: Identifying Corporate Credit Stress</h1>
+
+  <h2>Executive Summary</h2>
+  <p>
+    Periods of rising corporate loan defaults are important indicators of financial stress,
+    as they signal pressure on firms and an increased risk of losses for banks.
+    Because “stress” cannot be observed directly, it must be inferred from indirect indicators
+    and assessed for materiality.
+  </p>
+  <p>
+    This project examines UK corporate credit stress using the Bank of England’s
+    Credit Conditions Survey (CCS), focusing on lender‑reported default rates for
+    medium and large private non‑financial corporations (PNFCs).
+    UK government bond yields are included to provide context on wider financial conditions.
+  </p>
+  <p>
+    A four‑quarter moving average was applied to reduce short‑term noise and focus
+    on sustained changes. The results clearly identify 2008–2009 as the most severe
+    and prolonged stress period, with later episodes showing smaller and shorter‑lived increases.
+    Medium and large firms move broadly together, though the magnitude of stress differs slightly.
+  </p>
+
+  <h2>Data Infrastructure and Tools</h2>
+  <p>
+    The analysis was implemented in Python, using the pandas library for data handling
+    and time‑series processing. A code‑based workflow was chosen to support transparency,
+    reproducibility, and ease of review. Outputs were exported to Excel for validation
+    and visual inspection.
+  </p>
+  <p>
+    All data sources are publicly available. Corporate default indicators were taken
+    from the Bank of England’s CCS annex, while government bond yields were sourced
+    from the Bank of England’s nominal government liability curve datasets.
+  </p>
+
+  <h2>Data Engineering</h2>
+  <p>
+    The data engineering work focused on transforming multiple raw datasets with
+    different structures into a single quarterly time series suitable for analysis.
+    Survey data required restructuring from a wide Excel format, while daily bond
+    yield data were combined across historical files and aggregated to quarterly averages.
+  </p>
+  <p>
+    The datasets were merged using quarterly labels, with survey data treated as the
+    primary source. Four‑quarter moving averages were calculated to highlight sustained
+    stress periods. Intermediate and final datasets were saved separately to maintain
+    auditability.
+  </p>
+
+  <h2>Visualisation and Analysis</h2>
+  <p>
+    The results were presented using simple time‑series charts showing both raw values
+    and their moving averages. Separate charts for medium and large PNFCs allow clear
+    comparison of stress dynamics across firm sizes. The visualisations demonstrate
+    how reported default pressure intensifies, persists, and subsides over time.
+  </p>
+  <p>
+    Identified stress periods align well with known macro‑financial events, most
+    clearly during the Global Financial Crisis, supporting the validity of the approach.
+  </p>
+
+  <h2>Ethical and Practical Considerations</h2>
+  <p>
+    The analysis uses only aggregated, publicly available data and does not involve
+    any personal or firm‑level information. The main limitation is that survey results
+    reflect lender judgement rather than realised defaults, so findings are interpreted
+    cautiously and assumptions are clearly documented.
+  </p>
+
+  <h2>Selected Python Implementation</h2>
+  <details>
+    <summary><strong>Click to view code</strong></summary>
+    <pre><code>
+import pandas as pd
+
+ccs_data = pd.read_excel("ccs_annex.xlsx", sheet_name="Corporate annex", header=None)
+
+years = ccs_data.iloc[15, 2:].ffill()
+quarters = ccs_data.iloc[16, 2:]
+
+medium_pnfc = ccs_data.iloc[83, 2:]
+large_pnfc = ccs_data.iloc[86, 2:]
+
+labels = quarters.astype(str) + " " + years.astype(int).astype(str)
+
+df = pd.DataFrame({
+    "date": labels,
+    "medium_pnfc": medium_pnfc.values,
+    "large_pnfc": large_pnfc.values
+}).dropna().reset_index(drop=True)
+
+df["medium_ma4"] = df["medium_pnfc"].rolling(4).mean()
+df["large_ma4"] = df["large_pnfc"].rolling(4).mean()
+    </code></pre>
+  </details>
+
+</section>
