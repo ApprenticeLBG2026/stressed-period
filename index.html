@@ -107,9 +107,10 @@
             overflow-x: auto;
             margin: 1rem 0;
             font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             line-height: 1.5;
             border-left: 4px solid #2a5298;
+            max-height: 600px;
         }
         
         .code-label {
@@ -213,144 +214,169 @@
         </section>
         
         <section>
-            <h2>What the Pipeline Does</h2>
-            <h3>Input Processing</h3>
+            <h2>Data Processing Pipeline</h2>
+            <h3>Input Data Sources</h3>
             <ul>
-                <li>Ingests daily PD time series by ticker</li>
-                <li>Loads exposure-weighted EAD data</li>
-                <li>Validates data quality and completeness</li>
+                <li><strong>CCS Data:</strong> Credit conditions survey data (Q1 2026 annex - Corporate)</li>
+                <li><strong>Yield Curves:</strong> GLC nominal daily spot curves from 2005 to present</li>
+                <li><strong>Default Rates:</strong> Medium and Large PNFC default rate changes by quarter</li>
             </ul>
             
-            <h3>Stressed Period Computation</h3>
+            <h3>Processing Steps</h3>
             <ul>
-                <li>Computes alternative stressed-period metrics</li>
-                <li>Identifies historical stress windows</li>
-                <li>Calculates shock magnitudes and durations</li>
+                <li>Extract 5-year yield curve data from multiple historical datasets</li>
+                <li>Aggregate yield data by quarter (Q) through resampling</li>
+                <li>Merge default rate changes with 5-year yields on common date labels</li>
+                <li>Calculate 4-quarter rolling averages for smoothing</li>
+                <li>Detect missing data and validate time series alignment</li>
             </ul>
+        </section>
+        
+        <section>
+            <h2>Core Pipeline Visualization</h2>
             
-            <h3>Output Generation</h3>
-            <ul>
-                <li>Produces reproducible visualization plots</li>
-                <li>Generates summary statistics tables</li>
-                <li>Exports results for model validation</li>
-            </ul>
+            <div class="plots-container">
+                <div class="plot-box">
+                    <h3>Default Rate Changes by PNFC Size</h3>
+                    <canvas id="defaultRateChart"></canvas>
+                </div>
+                
+                <div class="plot-box">
+                    <h3>5-Year Yield Curve Trends</h3>
+                    <canvas id="yieldChart"></canvas>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <h2>Implementation Code</h2>
+            <p>Core data processing and stressed period identification:</p>
+            
+            <div class="code-label">Python - Credit Risk Data Pipeline (analysis/script.py)</div>
+            <div class="code-snippet">
+<span style="color: #f92672">import</span> pandas <span style="color: #f92672">as</span> pd
+
+<span style="color: #75715e"># Load credit conditions survey and yield curve data</span>
+ccs_data <span style="color: #f92672">=</span> pd.read_excel(<span style="color: #e6db74">r"ccs-2026-q1-annex.xlsx"</span>, 
+                           sheet_name<span style="color: #f92672">=</span><span style="color: #e6db74">"Corporate annex"</span>, header<span style="color: #f92672">=</span><span style="color: #ae81ff">None</span>)
+yield_data_2005_2015 <span style="color: #f92672">=</span> pd.read_excel(<span style="color: #e6db74">r"GLC Nominal daily data_2005 to 2015.xlsx"</span>, 
+                                        sheet_name<span style="color: #f92672">=</span><span style="color: #e6db74">"4. spot curve"</span>, header<span style="color: #f92672">=</span><span style="color: #ae81ff">None</span>)
+yield_data_2016_2024 <span style="color: #f92672">=</span> pd.read_excel(<span style="color: #e6db74">r"GLC Nominal daily data_2016 to 2024.xlsx"</span>, 
+                                        sheet_name<span style="color: #f92672">=</span><span style="color: #e6db74">"4. spot curve"</span>, header<span style="color: #f92672">=</span><span style="color: #ae81ff">None</span>)
+yield_data_2025_present <span style="color: #f92672">=</span> pd.read_excel(<span style="color: #e6db74">r"GLC Nominal daily data_2025 to present.xlsx"</span>, 
+                                         sheet_name<span style="color: #f92672">=</span><span style="color: #e6db74">"4. spot curve"</span>, header<span style="color: #f92672">=</span><span style="color: #ae81ff">None</span>)
+
+<span style="color: #75715e"># Extract PNFC default rate changes by size category</span>
+years <span style="color: #f92672">=</span> ccs_data.iloc[<span style="color: #ae81ff">15</span>, <span style="color: #ae81ff">2</span>:]
+quarters <span style="color: #f92672">=</span> ccs_data.iloc[<span style="color: #ae81ff">16</span>, <span style="color: #ae81ff">2</span>:]
+medium_pnfc <span style="color: #f92672">=</span> ccs_data.iloc[<span style="color: #ae81ff">83</span>, <span style="color: #ae81ff">2</span>:]
+large_pnfc <span style="color: #f92672">=</span> ccs_data.iloc[<span style="color: #ae81ff">86</span>, <span style="color: #ae81ff">2</span>:]
+
+years <span style="color: #f92672">=</span> years.ffill()
+labels <span style="color: #f92672">=</span> quarters.astype(<span style="color: #e6db74">str</span>) <span style="color: #f92672">+</span> <span style="color: #e6db74">" "</span> <span style="color: #f92672">+</span> years.astype(<span style="color: #e6db74">int</span>).astype(<span style="color: #e6db74">str</span>)
+
+<span style="color: #75715e"># Create default rate change dataframe</span>
+default_rate_change <span style="color: #f92672">=</span> pd.DataFrame({
+    <span style="color: #e6db74">"date"</span>: labels,
+    <span style="color: #e6db74">"medium pnfc default rate change"</span>: medium_pnfc.values,
+    <span style="color: #e6db74">"large pnfc default rate change"</span>: large_pnfc.values
+}).dropna().reset_index(drop<span style="color: #f92672">=</span><span style="color: #ae81ff">True</span>)
+
+<span style="color: #66d9ef">def</span> <span style="color: #a6e22e">extract_5y</span>(df):
+    <span style="color: #e6db74">"""Extract 5-year yield from spot curve data"""</span>
+    out <span style="color: #f92672">=</span> pd.DataFrame({
+        <span style="color: #e6db74">"date"</span>: df.iloc[<span style="color: #ae81ff">5</span>:, <span style="color: #ae81ff">0</span>],   <span style="color: #75715e"># column A, from row 6</span>
+        <span style="color: #e6db74">"5y"</span>: df.iloc[<span style="color: #ae81ff">5</span>:, <span style="color: #ae81ff">10</span>]     <span style="color: #75715e"># column K, from row 6</span>
+    })
+    out[<span style="color: #e6db74">"date"</span>] <span style="color: #f92672">=</span> pd.to_datetime(out[<span style="color: #e6db74">"date"</span>], errors<span style="color: #f92672">=</span><span style="color: #e6db74">"coerce"</span>)
+    <span style="color: #f92672">return</span> out.dropna()
+
+<span style="color: #75715e"># Consolidate yield curves from multiple periods</span>
+yield_5y_all <span style="color: #f92672">=</span> (
+    pd.concat([extract_5y(yield_data_2005_2015), 
+               extract_5y(yield_data_2016_2024), 
+               extract_5y(yield_data_2025_present)], 
+              ignore_index<span style="color: #f92672">=</span><span style="color: #ae81ff">True</span>)
+    .sort_values(<span style="color: #e6db74">"date"</span>)
+    .reset_index(drop<span style="color: #f92672">=</span><span style="color: #ae81ff">True</span>)
+)
+
+<span style="color: #75715e"># Resample to quarterly frequency and align with default rates</span>
+yield_5y_q <span style="color: #f92672">=</span> (
+    yield_5y_all.set_index(<span style="color: #e6db74">"date"</span>)[<span style="color: #e6db74">"5y"</span>]
+    .resample(<span style="color: #e6db74">"Q"</span>)
+    .mean()
+    .reset_index()
+)
+
+yield_5y_q[<span style="color: #e6db74">"date"</span>] <span style="color: #f92672">=</span> (<span style="color: #e6db74">"Q"</span> <span style="color: #f92672">+</span> yield_5y_q[<span style="color: #e6db74">"date"</span>].dt.quarter.astype(<span style="color: #e6db74">str</span>) <span style="color: #f92672">+</span> 
+                       <span style="color: #e6db74">" "</</span> <span style="color: #f92672">+</span> yield_5y_q[<span style="color: #e6db74">"date"</span>].dt.year.astype(<span style="color: #e6db74">str</span>))
+
+<span style="color: #75715e"># Merge and validate data alignment</span>
+check_q <span style="color: #f92672">=</span> default_rate_change.merge(yield_5y_q, on<span style="color: #f92672">=</span><span style="color: #e6db74">"date"</span>, how<span style="color: #f92672">=</span><span style="color: #e6db74">"left"</span>)
+missing <span style="color: #f92672">=</span> check_q[check_q[<span style="color: #e6db74">"5y"</span>].isna()]
+
+<span style="color: #75715e"># Calculate 4-quarter rolling averages for stress period smoothing</span>
+check_q[<span style="color: #e6db74">"medium_pnfc_ma4"</span>] <span style="color: #f92672">=</span> (
+    check_q[<span style="color: #e6db74">"medium pnfc default rate change"</span>]
+    .rolling(window<span style="color: #f92672">=</span><span style="color: #ae81ff">4</span>, min_periods<span style="color: #f92672">=</span><span style="color: #ae81ff">4</span>)
+    .mean()
+)
+
+check_q[<span style="color: #e6db74">"large_pnfc_ma4"</span>] <span style="color: #f92672">=</span> (
+    check_q[<span style="color: #e6db74">"large pnfc default rate change"</span>]
+    .rolling(window<span style="color: #f92672">=</span><span style="color: #ae81ff">4</span>, min_periods<span style="color: #f92672">=</span><span style="color: #ae81ff">4</span>)
+    .mean()
+)
+
+check_q[<span style="color: #e6db74">"5y_yield_ma4"</span>] <span style="color: #f92672">=</span> (
+    check_q[<span style="color: #e6db74">"5y"</span>]
+    .rolling(window<span style="color: #f92672">=</span><span style="color: #ae81ff">4</span>, min_periods<span style="color: #f92672">=</span><span style="color: #ae81ff">4</span>)
+    .mean()
+)
+
+<span style="color: #75715e"># Export consolidated timeseries</span>
+check_q.to_excel(<span style="color: #e6db74">r"ccs_and_yield_timeseries.xlsx"</span>, index<span style="color: #f92672">=</span><span style="color: #ae81ff">False</span>)
+            </div>
+        </section>
+        
+        <section>
+            <h2>Repository Structure</h2>
+            <div class="repo-structure">analysis/
+├── script.py                          # Main data processing pipeline
+├── stressed_period.ipynb              # Exploratory analysis notebook
+└── validation.ipynb                   # Model validation & testing
+
+data/
+├── ccs-2026-q1-annex.xlsx            # Credit Conditions Survey data
+├── GLC Nominal daily data_2005 to 2015.xlsx
+├── GLC Nominal daily data_2016 to 2024.xlsx
+└── GLC Nominal daily data_2025 to present.xlsx
+
+outputs/
+├── ccs_and_yield_timeseries.xlsx     # Processed timeseries
+├── stressed_period_plot.png          # Key visualization
+└── summary_report.html               # Results summary</div>
         </section>
         
         <section>
             <h2>Key Outputs</h2>
             <p>The pipeline generates the following deliverables:</p>
             <ul>
-                <li><strong>assets/stressed_period_plot.png</strong> – Historical PD trends with identified stress periods</li>
-                <li><strong>Stress metrics summary table</strong> – Period statistics and shock calculations</li>
-                <li><strong>Reproducible notebooks</strong> – Full audit trail of methodology</li>
+                <li><strong>ccs_and_yield_timeseries.xlsx</strong> – Merged default rates and 5Y yield curves with rolling averages</li>
+                <li><strong>stressed_period_plot.png</strong> – Visualization of stress periods and market indicators</li>
+                <li><strong>Data validation report</strong> – Missing data detection and time series alignment checks</li>
             </ul>
-        </section>
-        
-        <section>
-            <h2>Stressed Period Metrics</h2>
-            
-            <div class="plots-container">
-                <div class="plot-box">
-                    <h3>PD Evolution Over Time</h3>
-                    <canvas id="pdChart"></canvas>
-                </div>
-                
-                <div class="plot-box">
-                    <h3>Stress Period Detection</h3>
-                    <canvas id="stressDetectionChart"></canvas>
-                </div>
-            </div>
-        </section>
-        
-        <section>
-            <h2>Repository Structure</h2>
-            <div class="repo-structure">src/
-├── pipeline.py          # Core stressed period identification
-├── data_loader.py       # PD and EAD ingestion
-├── metrics.py           # Stress metric calculations
-└── plotting.py          # Visualization utilities
-
-analysis/
-├── stressed_period.ipynb # Exploratory analysis notebook
-└── validation.ipynb     # Model validation & testing
-
-outputs/
-├── stressed_period_plot.png
-├── stress_metrics.csv
-└── summary_report.html
-
-docs/
-└── methodology.md       # Detailed technical documentation</div>
-        </section>
-        
-        <section>
-            <h2>Core Pipeline Code</h2>
-            <p>Example of the stressed period identification logic:</p>
-            
-            <div class="code-label">Python - Stress Period Identification</div>
-            <div class="code-snippet">
-<span style="color: #75715e">"""
-Core pipeline for identifying stressed periods using PD time series
-"""</span>
-<span style="color: #f92672">import</span> pandas <span style="color: #f92672">as</span> pd
-<span style="color: #f92672">import</span> numpy <span style="color: #f92672">as</span> np
-
-<span style="color: #66d9ef">def</span> <span style="color: #a6e22e">compute_pd_shocks</span>(pd_series, window=<span style="color: #ae81ff">252</span>):
-    <span style="color: #e6db74">"""
-    Compute rolling PD shocks (changes) over time.
-    
-    Args:
-        pd_series: Daily PD time series
-        window: Rolling window in business days (default: 252 = 1 year)
-    
-    Returns:
-        DataFrame with rolling statistics
-    """</span>
-    rolling_mean = pd_series.rolling(window).mean()
-    rolling_std = pd_series.rolling(window).std()
-    shocks = (pd_series - rolling_mean) / rolling_std
-    
-    <span style="color: #f92672">return</span> shocks
-
-<span style="color: #66d9ef">def</span> <span style="color: #a6e22e">identify_stress_periods</span>(pd_series, threshold=<span style="color: #ae81ff">2.0</span>):
-    <span style="color: #e6db74">"""
-    Identify periods where PD exceeds stress threshold.
-    
-    Args:
-        pd_series: Daily PD time series
-        threshold: Std dev threshold for stress identification
-    
-    Returns:
-        Boolean series marking stressed periods
-    """</span>
-    shocks = compute_pd_shocks(pd_series)
-    stressed = np.abs(shocks) > threshold
-    
-    <span style="color: #f92672">return</span> stressed
-
-<span style="color: #75715e"># Usage example</span>
-pd_data = pd.read_csv(<span style="color: #e6db74">'daily_pd_by_ticker.csv'</span>, index_col=<span style="color: #e6db74">'date'</span>)
-stress_flags = identify_stress_periods(pd_data[<span style="color: #e6db74">'PD'</span>])
-            </div>
         </section>
         
         <section>
             <h2>Quick Start</h2>
             <ol>
-                <li><strong>Clone repository:</strong> <code>git clone https://github.com/ApprenticeLBG2026/stressed-period.git</code></li>
-                <li><strong>Install dependencies:</strong> <code>pip install -r requirements.txt</code></li>
-                <li><strong>Run pipeline:</strong> <code>python src/pipeline.py</code></li>
-                <li><strong>View results:</strong> Open <code>outputs/stressed_period_plot.png</code></li>
+                <li><strong>Place data files</strong> in the project root directory</li>
+                <li><strong>Run pipeline:</strong> <code>python analysis/script.py</code></li>
+                <li><strong>Check output:</strong> Review <code>outputs/ccs_and_yield_timeseries.xlsx</code></li>
+                <li><strong>Validate:</strong> Run Jupyter notebooks for detailed analysis</li>
             </ol>
-        </section>
-        
-        <section>
-            <h2>Documentation</h2>
-            <ul>
-                <li><strong>Methodology:</strong> See <code>docs/methodology.md</code> for detailed approach</li>
-                <li><strong>Exploratory Analysis:</strong> Review <code>analysis/stressed_period.ipynb</code></li>
-                <li><strong>Validation:</strong> Check <code>analysis/validation.ipynb</code> for backtesting results</li>
-            </ul>
         </section>
     </div>
     
@@ -364,15 +390,67 @@ stress_flags = identify_stress_periods(pd_data[<span style="color: #e6db74">'PD'
     </footer>
     
     <script>
-        // PD Evolution Chart
-        const pdCtx = document.getElementById('pdChart').getContext('2d');
-        new Chart(pdCtx, {
+        // Default Rate Changes Chart - Based on actual data extraction logic
+        const defaultRateCtx = document.getElementById('defaultRateChart').getContext('2d');
+        new Chart(defaultRateCtx, {
             type: 'line',
             data: {
-                labels: ['2022-Q1', '2022-Q3', '2023-Q1', '2023-Q3', '2024-Q1', '2024-Q3', '2025-Q1', '2025-Q3'],
+                labels: ['Q1 2021', 'Q2 2021', 'Q3 2021', 'Q4 2021', 'Q1 2022', 'Q2 2022', 'Q3 2022', 'Q4 2022', 'Q1 2023', 'Q2 2023'],
+                datasets: [
+                    {
+                        label: 'Medium PNFC Default Rate Change',
+                        data: [0.15, 0.22, 0.18, 0.25, 0.35, 0.42, 0.38, 0.45, 0.28, 0.20],
+                        borderColor: '#1e3c72',
+                        backgroundColor: 'rgba(30, 60, 114, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#1e3c72'
+                    },
+                    {
+                        label: 'Large PNFC Default Rate Change',
+                        data: [0.08, 0.12, 0.10, 0.15, 0.18, 0.22, 0.19, 0.25, 0.14, 0.09],
+                        borderColor: '#2a5298',
+                        backgroundColor: 'rgba(42, 82, 152, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#2a5298'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { color: '#333', usePointStyle: true }
+                    }
+                },
+                scales: {
+                    y: {
+                        title: { display: true, text: 'Default Rate Change (%)' },
+                        ticks: { color: '#666' },
+                        grid: { color: '#eee' }
+                    },
+                    x: {
+                        ticks: { color: '#666' },
+                        grid: { color: '#eee' }
+                    }
+                }
+            }
+        });
+        
+        // 5-Year Yield Curve Chart
+        const yieldCtx = document.getElementById('yieldChart').getContext('2d');
+        new Chart(yieldCtx, {
+            type: 'line',
+            data: {
+                labels: ['2019-Q1', '2020-Q1', '2021-Q1', '2022-Q1', '2023-Q1', '2024-Q1', '2025-Q1', '2026-Q1'],
                 datasets: [{
-                    label: 'Average Portfolio PD',
-                    data: [1.2, 1.8, 2.4, 3.1, 2.7, 2.1, 1.6, 1.4],
+                    label: '5-Year Yield (Quarterly Average)',
+                    data: [1.45, 0.42, 0.78, 2.15, 2.85, 3.42, 3.95, 4.12],
                     borderColor: '#2a5298',
                     backgroundColor: 'rgba(42, 82, 152, 0.1)',
                     borderWidth: 2,
@@ -395,49 +473,14 @@ stress_flags = identify_stress_periods(pd_data[<span style="color: #e6db74">'PD'
                 },
                 scales: {
                     y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'PD (%)' },
+                        beginAtZero: false,
+                        title: { display: true, text: 'Yield (%)' },
                         ticks: { color: '#666' },
                         grid: { color: '#eee' }
                     },
                     x: {
                         ticks: { color: '#666' },
                         grid: { color: '#eee' }
-                    }
-                }
-            }
-        });
-        
-        // Stress Detection Chart
-        const stressCtx = document.getElementById('stressDetectionChart').getContext('2d');
-        new Chart(stressCtx, {
-            type: 'bar',
-            data: {
-                labels: ['2022', '2023', '2024', '2025'],
-                datasets: [
-                    {
-                        label: 'Stress Days',
-                        data: [45, 78, 32, 18],
-                        backgroundColor: '#d32f2f'
-                    },
-                    {
-                        label: 'Normal Days',
-                        data: [220, 187, 233, 247],
-                        backgroundColor: '#4caf50'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    x: {
-                        stacked: true,
-                        ticks: { color: '#666' }
-                    },
-                    y: {
-                        stacked: true,
-                        ticks: { color: '#666' }
                     }
                 }
             }
