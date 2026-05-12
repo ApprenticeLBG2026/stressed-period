@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stressed Period - Survey Based Indicators</title>
+    <title>Stressed Period Identification for IRC</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -20,7 +20,7 @@
         }
         
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
             padding: 3rem 2rem;
             text-align: center;
@@ -51,14 +51,33 @@
         }
         
         h2 {
-            color: #667eea;
+            color: #1e3c72;
             margin-bottom: 1rem;
             font-size: 1.8rem;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 {
+            color: #2a5298;
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            font-size: 1.3rem;
         }
         
         p {
             margin-bottom: 1rem;
             color: #555;
+        }
+        
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+            color: #555;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
         }
         
         .plots-container {
@@ -72,12 +91,12 @@
             background: #f9f9f9;
             padding: 1.5rem;
             border-radius: 6px;
-            border: 1px solid #eee;
+            border: 1px solid #ddd;
         }
         
         .plot-box h3 {
-            margin-bottom: 1rem;
-            color: #333;
+            margin-top: 0;
+            color: #1e3c72;
         }
         
         .code-snippet {
@@ -90,13 +109,39 @@
             font-family: 'Courier New', monospace;
             font-size: 0.9rem;
             line-height: 1.5;
+            border-left: 4px solid #2a5298;
         }
         
         .code-label {
-            color: #667eea;
+            color: #1e3c72;
             font-weight: bold;
             margin-top: 1.5rem;
             margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .repo-structure {
+            background: #f0f4f8;
+            padding: 1.5rem;
+            border-radius: 6px;
+            border-left: 4px solid #2a5298;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        
+        .highlight-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2a5298;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+        
+        .highlight-box strong {
+            color: #1e3c72;
         }
         
         footer {
@@ -104,6 +149,19 @@
             padding: 2rem;
             color: #666;
             font-size: 0.9rem;
+            border-top: 1px solid #ddd;
+            margin-top: 3rem;
+        }
+        
+        .regulatory-badge {
+            display: inline-block;
+            background: #2a5298;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
         }
         
         @media (max-width: 768px) {
@@ -119,107 +177,209 @@
 </head>
 <body>
     <header>
-        <h1>📊 Stressed Period</h1>
-        <p>Using Survey-Based Indicators to Identify Stressed Periods</p>
+        <h1>💼 Stressed Period Identification for IRC</h1>
+        <p>Automated Credit Risk Calibration for Internal Model Method</p>
     </header>
     
     <div class="container">
         <section>
             <h2>Overview</h2>
             <p>
-                This project demonstrates how survey-based indicators can be used in a transparent way 
-                to identify stressed periods. By analyzing survey responses over time, we can detect patterns 
-                and trends that indicate periods of heightened stress.
+                This project automates the identification of credit-stressed periods to support 
+                <strong>Internal Model Method (IMM) calibration for IRC</strong> (Incremental Risk Charge).
             </p>
             <p>
-                <strong>Key Principle:</strong> Results should be interpreted cautiously, with clear documentation 
-                of choices, limitations, and methodology.
+                Under <strong>CRR Article 284(4)</strong>, banks using internal models must calibrate 
+                stressed inputs using an appropriate historical stress period. This project replaces 
+                a manual, spreadsheet-based process with a reproducible Python pipeline.
             </p>
+            <div class="highlight-box">
+                <strong>🔒 Regulatory Framework:</strong> CRR Article 284(4) | Internal Model Method (IMM) | Incremental Risk Charge (IRC)
+            </div>
         </section>
         
         <section>
-            <h2>Stress Metrics Visualization</h2>
+            <h2>Business Context</h2>
+            <p>
+                Banks using internal models for capital calculations must:
+            </p>
+            <ul>
+                <li>Identify and calibrate stressed periods from historical data</li>
+                <li>Use appropriate PD (Probability of Default) time series</li>
+                <li>Incorporate exposure-weighted EAD (Exposure at Default) data</li>
+                <li>Ensure reproducibility and auditability of calculations</li>
+                <li>Comply with regulatory validation requirements</li>
+            </ul>
+        </section>
+        
+        <section>
+            <h2>What the Pipeline Does</h2>
+            <h3>Input Processing</h3>
+            <ul>
+                <li>Ingests daily PD time series by ticker</li>
+                <li>Loads exposure-weighted EAD data</li>
+                <li>Validates data quality and completeness</li>
+            </ul>
+            
+            <h3>Stressed Period Computation</h3>
+            <ul>
+                <li>Computes alternative stressed-period metrics</li>
+                <li>Identifies historical stress windows</li>
+                <li>Calculates shock magnitudes and durations</li>
+            </ul>
+            
+            <h3>Output Generation</h3>
+            <ul>
+                <li>Produces reproducible visualization plots</li>
+                <li>Generates summary statistics tables</li>
+                <li>Exports results for model validation</li>
+            </ul>
+        </section>
+        
+        <section>
+            <h2>Key Outputs</h2>
+            <p>The pipeline generates the following deliverables:</p>
+            <ul>
+                <li><strong>assets/stressed_period_plot.png</strong> – Historical PD trends with identified stress periods</li>
+                <li><strong>Stress metrics summary table</strong> – Period statistics and shock calculations</li>
+                <li><strong>Reproducible notebooks</strong> – Full audit trail of methodology</li>
+            </ul>
+        </section>
+        
+        <section>
+            <h2>Stressed Period Metrics</h2>
             
             <div class="plots-container">
                 <div class="plot-box">
-                    <h3>Stress Levels Over Time</h3>
-                    <canvas id="stressChart"></canvas>
+                    <h3>PD Evolution Over Time</h3>
+                    <canvas id="pdChart"></canvas>
                 </div>
                 
                 <div class="plot-box">
-                    <h3>Survey Response Distribution</h3>
-                    <canvas id="distributionChart"></canvas>
+                    <h3>Stress Period Detection</h3>
+                    <canvas id="stressDetectionChart"></canvas>
                 </div>
             </div>
         </section>
         
         <section>
-            <h2>Implementation</h2>
-            <p>Here's a sample code snippet showing how to calculate stress indicators from survey data:</p>
+            <h2>Repository Structure</h2>
+            <div class="repo-structure">src/
+├── pipeline.py          # Core stressed period identification
+├── data_loader.py       # PD and EAD ingestion
+├── metrics.py           # Stress metric calculations
+└── plotting.py          # Visualization utilities
+
+analysis/
+├── stressed_period.ipynb # Exploratory analysis notebook
+└── validation.ipynb     # Model validation & testing
+
+outputs/
+├── stressed_period_plot.png
+├── stress_metrics.csv
+└── summary_report.html
+
+docs/
+└── methodology.md       # Detailed technical documentation</div>
+        </section>
+        
+        <section>
+            <h2>Core Pipeline Code</h2>
+            <p>Example of the stressed period identification logic:</p>
             
-            <div class="code-label">Python - Stress Indicator Calculation</div>
+            <div class="code-label">Python - Stress Period Identification</div>
             <div class="code-snippet">
-<span style="color: #75715e"># Calculate stress indicators from survey responses</span>
+<span style="color: #75715e">"""
+Core pipeline for identifying stressed periods using PD time series
+"""</span>
 <span style="color: #f92672">import</span> pandas <span style="color: #f92672">as</span> pd
 <span style="color: #f92672">import</span> numpy <span style="color: #f92672">as</span> np
 
-<span style="color: #66d9ef">def</span> <span style="color: #a6e22e">calculate_stress_score</span>(survey_data):
+<span style="color: #66d9ef">def</span> <span style="color: #a6e22e">compute_pd_shocks</span>(pd_series, window=<span style="color: #ae81ff">252</span>):
     <span style="color: #e6db74">"""
-    Calculate average stress score from survey responses.
-    Scale: 1 (low stress) to 5 (high stress)
+    Compute rolling PD shocks (changes) over time.
+    
+    Args:
+        pd_series: Daily PD time series
+        window: Rolling window in business days (default: 252 = 1 year)
+    
+    Returns:
+        DataFrame with rolling statistics
     """</span>
-    responses = survey_data[<span style="color: #e6db74">'stress_level'</span>]
-    stress_score = responses.mean()
-    <span style="color: #f92672">return</span> stress_score
+    rolling_mean = pd_series.rolling(window).mean()
+    rolling_std = pd_series.rolling(window).std()
+    shocks = (pd_series - rolling_mean) / rolling_std
+    
+    <span style="color: #f92672">return</span> shocks
 
-<span style="color: #66d9ef">def</span> <span style="color: #a6e22e">identify_stressed_periods</span>(data, threshold=<span style="color: #ae81ff">3.5</span>):
+<span style="color: #66d9ef">def</span> <span style="color: #a6e22e">identify_stress_periods</span>(pd_series, threshold=<span style="color: #ae81ff">2.0</span>):
     <span style="color: #e6db74">"""
-    Identify periods where stress exceeds threshold.
+    Identify periods where PD exceeds stress threshold.
+    
+    Args:
+        pd_series: Daily PD time series
+        threshold: Std dev threshold for stress identification
+    
+    Returns:
+        Boolean series marking stressed periods
     """</span>
-    data[<span style="color: #e6db74">'is_stressed'</span>] = data[<span style="color: #e6db74">'stress_score'</span>] > threshold
-    <span style="color: #f92672">return</span> data
+    shocks = compute_pd_shocks(pd_series)
+    stressed = np.abs(shocks) > threshold
+    
+    <span style="color: #f92672">return</span> stressed
 
-<span style="color: #75715e"># Example usage</span>
-survey_df = pd.read_csv(<span style="color: #e6db74">'survey_data.csv'</span>)
-stressed_periods = identify_stressed_periods(survey_df)
+<span style="color: #75715e"># Usage example</span>
+pd_data = pd.read_csv(<span style="color: #e6db74">'daily_pd_by_ticker.csv'</span>, index_col=<span style="color: #e6db74">'date'</span>)
+stress_flags = identify_stress_periods(pd_data[<span style="color: #e6db74">'PD'</span>])
             </div>
         </section>
         
         <section>
-            <h2>Key Considerations</h2>
-            <ul style="margin-left: 2rem; color: #555;">
-                <li>Survey response bias and sample size limitations</li>
-                <li>Temporal patterns and seasonal effects</li>
-                <li>Clear documentation of survey questions and scoring methodology</li>
-                <li>Validation against external stress indicators</li>
-                <li>Confidence intervals and statistical significance</li>
+            <h2>Quick Start</h2>
+            <ol>
+                <li><strong>Clone repository:</strong> <code>git clone https://github.com/ApprenticeLBG2026/stressed-period.git</code></li>
+                <li><strong>Install dependencies:</strong> <code>pip install -r requirements.txt</code></li>
+                <li><strong>Run pipeline:</strong> <code>python src/pipeline.py</code></li>
+                <li><strong>View results:</strong> Open <code>outputs/stressed_period_plot.png</code></li>
+            </ol>
+        </section>
+        
+        <section>
+            <h2>Documentation</h2>
+            <ul>
+                <li><strong>Methodology:</strong> See <code>docs/methodology.md</code> for detailed approach</li>
+                <li><strong>Exploratory Analysis:</strong> Review <code>analysis/stressed_period.ipynb</code></li>
+                <li><strong>Validation:</strong> Check <code>analysis/validation.ipynb</code> for backtesting results</li>
             </ul>
         </section>
     </div>
     
     <footer>
-        <p>&copy; 2026 Stressed Period Project | 
-        <a href="https://github.com/ApprenticeLBG2026/stressed-period" style="color: #667eea; text-decoration: none;">View on GitHub</a>
+        <p>&copy; 2026 Stressed Period Identification for IRC | 
+        <a href="https://github.com/ApprenticeLBG2026/stressed-period" style="color: #2a5298; text-decoration: none;">View on GitHub</a>
+        </p>
+        <p style="margin-top: 1rem; font-size: 0.85rem;">
+            Regulatory Framework: CRR Article 284(4) | IMM | IRC
         </p>
     </footer>
     
     <script>
-        // Stress Levels Chart
-        const stressCtx = document.getElementById('stressChart').getContext('2d');
-        new Chart(stressCtx, {
+        // PD Evolution Chart
+        const pdCtx = document.getElementById('pdChart').getContext('2d');
+        new Chart(pdCtx, {
             type: 'line',
             data: {
-                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                labels: ['2022-Q1', '2022-Q3', '2023-Q1', '2023-Q3', '2024-Q1', '2024-Q3', '2025-Q1', '2025-Q3'],
                 datasets: [{
-                    label: 'Average Stress Level',
-                    data: [2.5, 3.1, 3.8, 4.2, 3.9, 3.5, 2.8, 2.3],
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    label: 'Average Portfolio PD',
+                    data: [1.2, 1.8, 2.4, 3.1, 2.7, 2.1, 1.6, 1.4],
+                    borderColor: '#2a5298',
+                    backgroundColor: 'rgba(42, 82, 152, 0.1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: true,
                     pointRadius: 5,
-                    pointBackgroundColor: '#667eea',
+                    pointBackgroundColor: '#2a5298',
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2
                 }]
@@ -236,7 +396,7 @@ stressed_periods = identify_stressed_periods(survey_df)
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 5,
+                        title: { display: true, text: 'PD (%)' },
                         ticks: { color: '#666' },
                         grid: { color: '#eee' }
                     },
@@ -248,42 +408,36 @@ stressed_periods = identify_stressed_periods(survey_df)
             }
         });
         
-        // Distribution Chart
-        const distCtx = document.getElementById('distributionChart').getContext('2d');
-        new Chart(distCtx, {
+        // Stress Detection Chart
+        const stressCtx = document.getElementById('stressDetectionChart').getContext('2d');
+        new Chart(stressCtx, {
             type: 'bar',
             data: {
-                labels: ['Very Low', 'Low', 'Medium', 'High', 'Very High'],
-                datasets: [{
-                    label: 'Number of Responses',
-                    data: [45, 78, 112, 98, 67],
-                    backgroundColor: [
-                        '#4CAF50',
-                        '#8BC34A',
-                        '#FFC107',
-                        '#FF9800',
-                        '#F44336'
-                    ],
-                    borderRadius: 4
-                }]
+                labels: ['2022', '2023', '2024', '2025'],
+                datasets: [
+                    {
+                        label: 'Stress Days',
+                        data: [45, 78, 32, 18],
+                        backgroundColor: '#d32f2f'
+                    },
+                    {
+                        label: 'Normal Days',
+                        data: [220, 187, 233, 247],
+                        backgroundColor: '#4caf50'
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: { color: '#333' }
-                    }
-                },
                 scales: {
-                    y: {
-                        ticks: { color: '#666' },
-                        grid: { color: '#eee' }
-                    },
                     x: {
-                        ticks: { color: '#666' },
-                        grid: { color: '#eee' }
+                        stacked: true,
+                        ticks: { color: '#666' }
+                    },
+                    y: {
+                        stacked: true,
+                        ticks: { color: '#666' }
                     }
                 }
             }
