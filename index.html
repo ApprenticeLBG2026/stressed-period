@@ -129,18 +129,6 @@
             font-size: 0.95rem;
         }
         
-        .repo-structure {
-            background: #f0f4f8;
-            padding: 1.5rem;
-            border-radius: 6px;
-            border-left: 4px solid #2a5298;
-            margin: 1.5rem 0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            white-space: pre;
-            overflow-x: auto;
-        }
-        
         .highlight-box {
             background: #e3f2fd;
             border-left: 4px solid #2a5298;
@@ -370,29 +358,6 @@ check_q.to_excel(<span style="color: #e6db74">r"ccs_and_yield_timeseries.xlsx"</
         </section>
         
         <section>
-            <h2>Repository Structure</h2>
-            <div class="repo-structure">analysis/
-├── script.py                          # Main data processing pipeline
-├── stressed_period.ipynb              # Exploratory analysis notebook
-└── validation.ipynb                   # Model validation & testing
-
-data/
-├── ccs-2026-q1-annex.xlsx            # Credit Conditions Survey data
-├── GLC Nominal daily data_2005 to 2015.xlsx
-├── GLC Nominal daily data_2016 to 2024.xlsx
-└── GLC Nominal daily data_2025 to present.xlsx
-
-assets/
-├── 5year_yields.png                  # 5-year gilt yields visualization
-├── medium_pnfc_default.png           # Medium PNFC default rates
-└── large_pnfc_default.png            # Large PNFC default rates
-
-outputs/
-├── ccs_and_yield_timeseries.xlsx     # Processed timeseries
-└── summary_report.html               # Results summary</div>
-        </section>
-        
-        <section>
             <h2>Key Findings</h2>
             <ul>
                 <li><strong>Historical Stress Period:</strong> Q1 2008 - Q4 2009 (Financial Crisis)</li>
@@ -402,16 +367,6 @@ outputs/
                 <li><strong>Secondary Stress:</strong> 2022-2023 period (rate hikes) shows moderate stress with yields rising to 4.5%</li>
                 <li><strong>Current Stabilization:</strong> 2024-present shows yields around 4%, indicating normalized market conditions</li>
             </ul>
-        </section>
-        
-        <section>
-            <h2>Quick Start</h2>
-            <ol>
-                <li><strong>Place data files</strong> in the project root directory</li>
-                <li><strong>Run pipeline:</strong> <code>python analysis/script.py</code></li>
-                <li><strong>Check output:</strong> Review <code>outputs/ccs_and_yield_timeseries.xlsx</code></li>
-                <li><strong>Validate:</strong> Run Jupyter notebooks for detailed analysis</li>
-            </ol>
         </section>
     </div>
     
