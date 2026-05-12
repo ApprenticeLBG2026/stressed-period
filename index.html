@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stressed Period Identification for IRC</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -82,7 +81,7 @@
         
         .plots-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 2rem;
             margin: 2rem 0;
         }
@@ -92,11 +91,20 @@
             padding: 1.5rem;
             border-radius: 6px;
             border: 1px solid #ddd;
+            text-align: center;
         }
         
         .plot-box h3 {
             margin-top: 0;
             color: #1e3c72;
+            margin-bottom: 1rem;
+        }
+        
+        .plot-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
         .code-snippet {
@@ -145,6 +153,15 @@
             color: #1e3c72;
         }
         
+        .stress-indicator {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+            color: #856404;
+        }
+        
         footer {
             text-align: center;
             padding: 2rem;
@@ -154,24 +171,13 @@
             margin-top: 3rem;
         }
         
-        .regulatory-badge {
-            display: inline-block;
-            background: #2a5298;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
         @media (max-width: 768px) {
-            .plots-container {
-                grid-template-columns: 1fr;
-            }
-            
             header h1 {
                 font-size: 1.8rem;
+            }
+            
+            .plot-box img {
+                max-width: 100%;
             }
         }
     </style>
@@ -233,17 +239,46 @@
         </section>
         
         <section>
-            <h2>Core Pipeline Visualization</h2>
+            <h2>Key Visualizations</h2>
             
             <div class="plots-container">
                 <div class="plot-box">
-                    <h3>Default Rate Changes by PNFC Size</h3>
-                    <canvas id="defaultRateChart"></canvas>
+                    <h3>5-Year Yields - UK Government Bonds</h3>
+                    <p style="margin-bottom: 1rem; font-size: 0.95rem; color: #666;">
+                        Historical 5-year gilt yields showing market stress periods. The 2008-2009 financial crisis 
+                        represents the most significant stress event, with yields spiking to ~5%. Recent 2022-2023 
+                        period shows secondary stress from rate hikes.
+                    </p>
+                    <img src="https://raw.githubusercontent.com/ApprenticeLBG2026/stressed-period/main/assets/5year_yields.png" 
+                         alt="5 Year Yields - UK Government Bonds" 
+                         loading="lazy">
+                    <div class="stress-indicator" style="margin-top: 1rem;">
+                        <strong>🔴 Identified Stress Period:</strong> Q1 2008 - Q4 2009 (Financial Crisis)
+                    </div>
                 </div>
                 
                 <div class="plot-box">
-                    <h3>5-Year Yield Curve Trends</h3>
-                    <canvas id="yieldChart"></canvas>
+                    <h3>Three-Month Medium PNFCs Default Rate Change</h3>
+                    <p style="margin-bottom: 1rem; font-size: 0.95rem; color: #666;">
+                        Quarterly changes in default rates for medium-sized Private Non-Financial Corporations. 
+                        Shows extreme volatility during 2008-2009 crisis (~60% change) followed by stabilization 
+                        with yearly moving average smoothing.
+                    </p>
+                    <img src="https://raw.githubusercontent.com/ApprenticeLBG2026/stressed-period/main/assets/medium_pnfc_default.png" 
+                         alt="Three Month Medium PNFCs Default Rate Change" 
+                         loading="lazy">
+                </div>
+                
+                <div class="plot-box">
+                    <h3>Three-Month Large PNFCs Default Rate Change</h3>
+                    <p style="margin-bottom: 1rem; font-size: 0.95rem; color: #666;">
+                        Quarterly changes in default rates for large Private Non-Financial Corporations. 
+                        Exhibits similar stress patterns to medium PNFCs but with slightly lower volatility. 
+                        2008-2009 crisis shows ~50% peak in default rate changes.
+                    </p>
+                    <img src="https://raw.githubusercontent.com/ApprenticeLBG2026/stressed-period/main/assets/large_pnfc_default.png" 
+                         alt="Three Month Large PNFCs Default Rate Change" 
+                         loading="lazy">
                 </div>
             </div>
         </section>
@@ -323,12 +358,6 @@ check_q[<span style="color: #e6db74">"medium_pnfc_ma4"</span>] <span style="colo
     .mean()
 )
 
-check_q[<span style="color: #e6db74">"large_pnfc_ma4"</span>] <span style="color: #f92672">=</span> (
-    check_q[<span style="color: #e6db74">"large pnfc default rate change"</span>]
-    .rolling(window<span style="color: #f92672">=</span><span style="color: #ae81ff">4</span>, min_periods<span style="color: #f92672">=</span><span style="color: #ae81ff">4</span>)
-    .mean()
-)
-
 check_q[<span style="color: #e6db74">"5y_yield_ma4"</span>] <span style="color: #f92672">=</span> (
     check_q[<span style="color: #e6db74">"5y"</span>]
     .rolling(window<span style="color: #f92672">=</span><span style="color: #ae81ff">4</span>, min_periods<span style="color: #f92672">=</span><span style="color: #ae81ff">4</span>)
@@ -353,19 +382,25 @@ data/
 ├── GLC Nominal daily data_2016 to 2024.xlsx
 └── GLC Nominal daily data_2025 to present.xlsx
 
+assets/
+├── 5year_yields.png                  # 5-year gilt yields visualization
+├── medium_pnfc_default.png           # Medium PNFC default rates
+└── large_pnfc_default.png            # Large PNFC default rates
+
 outputs/
 ├── ccs_and_yield_timeseries.xlsx     # Processed timeseries
-├── stressed_period_plot.png          # Key visualization
 └── summary_report.html               # Results summary</div>
         </section>
         
         <section>
-            <h2>Key Outputs</h2>
-            <p>The pipeline generates the following deliverables:</p>
+            <h2>Key Findings</h2>
             <ul>
-                <li><strong>ccs_and_yield_timeseries.xlsx</strong> – Merged default rates and 5Y yield curves with rolling averages</li>
-                <li><strong>stressed_period_plot.png</strong> – Visualization of stress periods and market indicators</li>
-                <li><strong>Data validation report</strong> – Missing data detection and time series alignment checks</li>
+                <li><strong>Historical Stress Period:</strong> Q1 2008 - Q4 2009 (Financial Crisis)</li>
+                <li><strong>Primary Stress Indicator:</strong> 5-year yields spiked to ~5% (from ~4.5% baseline)</li>
+                <li><strong>PNFC Default Impact:</strong> Medium-sized firms showed 60% quarterly default rate changes; large firms ~50%</li>
+                <li><strong>Recovery Period:</strong> 2010-2021 showed gradual normalization with yields declining to near 0%</li>
+                <li><strong>Secondary Stress:</strong> 2022-2023 period (rate hikes) shows moderate stress with yields rising to 4.5%</li>
+                <li><strong>Current Stabilization:</strong> 2024-present shows yields around 4%, indicating normalized market conditions</li>
             </ul>
         </section>
         
@@ -388,103 +423,5 @@ outputs/
             Regulatory Framework: CRR Article 284(4) | IMM | IRC
         </p>
     </footer>
-    
-    <script>
-        // Default Rate Changes Chart - Based on actual data extraction logic
-        const defaultRateCtx = document.getElementById('defaultRateChart').getContext('2d');
-        new Chart(defaultRateCtx, {
-            type: 'line',
-            data: {
-                labels: ['Q1 2021', 'Q2 2021', 'Q3 2021', 'Q4 2021', 'Q1 2022', 'Q2 2022', 'Q3 2022', 'Q4 2022', 'Q1 2023', 'Q2 2023'],
-                datasets: [
-                    {
-                        label: 'Medium PNFC Default Rate Change',
-                        data: [0.15, 0.22, 0.18, 0.25, 0.35, 0.42, 0.38, 0.45, 0.28, 0.20],
-                        borderColor: '#1e3c72',
-                        backgroundColor: 'rgba(30, 60, 114, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#1e3c72'
-                    },
-                    {
-                        label: 'Large PNFC Default Rate Change',
-                        data: [0.08, 0.12, 0.10, 0.15, 0.18, 0.22, 0.19, 0.25, 0.14, 0.09],
-                        borderColor: '#2a5298',
-                        backgroundColor: 'rgba(42, 82, 152, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#2a5298'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: { color: '#333', usePointStyle: true }
-                    }
-                },
-                scales: {
-                    y: {
-                        title: { display: true, text: 'Default Rate Change (%)' },
-                        ticks: { color: '#666' },
-                        grid: { color: '#eee' }
-                    },
-                    x: {
-                        ticks: { color: '#666' },
-                        grid: { color: '#eee' }
-                    }
-                }
-            }
-        });
-        
-        // 5-Year Yield Curve Chart
-        const yieldCtx = document.getElementById('yieldChart').getContext('2d');
-        new Chart(yieldCtx, {
-            type: 'line',
-            data: {
-                labels: ['2019-Q1', '2020-Q1', '2021-Q1', '2022-Q1', '2023-Q1', '2024-Q1', '2025-Q1', '2026-Q1'],
-                datasets: [{
-                    label: '5-Year Yield (Quarterly Average)',
-                    data: [1.45, 0.42, 0.78, 2.15, 2.85, 3.42, 3.95, 4.12],
-                    borderColor: '#2a5298',
-                    backgroundColor: 'rgba(42, 82, 152, 0.1)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: 5,
-                    pointBackgroundColor: '#2a5298',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: { color: '#333' }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        title: { display: true, text: 'Yield (%)' },
-                        ticks: { color: '#666' },
-                        grid: { color: '#eee' }
-                    },
-                    x: {
-                        ticks: { color: '#666' },
-                        grid: { color: '#eee' }
-                    }
-                }
-            }
-        });
-    </script>
 </body>
 </html>
